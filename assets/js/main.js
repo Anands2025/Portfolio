@@ -36,7 +36,7 @@
   /**
    * Toggle mobile nav dropdowns
    */
-  document.querySelectorAll('.navmenu .toggle-dropdown').forEach(navmenu => {
+  document.querySelectorAll('#navmenu .toggle-dropdown').forEach(navmenu => {
     navmenu.addEventListener('click', function(e) {
       e.preventDefault();
       this.parentNode.classList.toggle('active');
@@ -207,7 +207,7 @@
   /**
    * Navmenu Scrollspy
    */
-  let navmenulinks = document.querySelectorAll('.navmenu a');
+  let navmenulinks = document.querySelectorAll('#navmenu a');
 
   function navmenuScrollspy() {
     navmenulinks.forEach(navmenulink => {
@@ -226,42 +226,89 @@
   window.addEventListener('load', navmenuScrollspy);
   document.addEventListener('scroll', navmenuScrollspy);
 
-  // Add Particles.js for background effect
-  particlesJS("particles-js", {
-    particles: {
-      number: { value: 80 },
-      color: { value: "#ffffff" },
-      shape: { type: "circle" },
-      opacity: {
-        value: 0.5,
-        random: true
-      },
-      size: {
-        value: 3,
-        random: true
-      },
-      move: {
-        enable: true,
-        speed: 2,
-        direction: "none",
-        random: true,
-        out_mode: "out"
-      }
-    },
-    interactivity: {
-      detect_on: "canvas",
-      events: {
-        onhover: {
-          enable: true,
-          mode: "repulse"
-        },
-        onclick: {
-          enable: true,
-          mode: "push"
-        }
-      }
+  /**
+   * Theme Toggle with persistence
+   */
+  const themeToggleBtn = document.getElementById('theme-toggle');
+  const rootEl = document.documentElement;
+  const savedTheme = localStorage.getItem('theme');
+
+  if (savedTheme === 'dark') {
+    rootEl.setAttribute('data-theme', 'dark');
+    if (themeToggleBtn) {
+      themeToggleBtn.setAttribute('aria-pressed', 'true');
+      themeToggleBtn.innerHTML = '<i class="bi bi-sun"></i><span class="toggle-label">Light mode</span>';
     }
-  });
+  }
+
+  function applyParticlesForTheme() {
+    const container = document.getElementById('particles-js');
+    if (!container || typeof particlesJS === 'undefined') return;
+    // Destroy existing instance if present
+    if (window.pJSDom && window.pJSDom.length) {
+      try {
+        window.pJSDom[0].pJS.fn.vendors.destroypJS();
+      } catch (e) {}
+      // particles.js keeps references; reset array
+      window.pJSDom = [];
+    }
+    // Clear container
+    container.innerHTML = '';
+    const isDark = rootEl.getAttribute('data-theme') === 'dark';
+    const particleColor = isDark ? '#ffffff' : '#0b1220';
+    const linkColor = isDark ? '#8ab4ff' : '#4F5BD5';
+    const opacity = isDark ? 0.55 : 0.5;
+    const size = 3;
+    const speed = 1.8;
+
+    particlesJS('particles-js', {
+      particles: {
+        number: { value: 110 },
+        color: { value: particleColor },
+        shape: { type: 'circle' },
+        opacity: { value: opacity, random: true },
+        size: { value: size, random: true },
+        move: { enable: true, speed: speed, direction: 'none', random: true, out_mode: 'out' },
+        line_linked: { enable: true, color: linkColor, opacity: 0.35, width: 1 }
+      },
+      interactivity: {
+        detect_on: 'canvas',
+        events: {
+          onhover: { enable: true, mode: 'grab' },
+          onclick: { enable: true, mode: 'push' }
+        },
+        modes: {
+          grab: { distance: 160, line_linked: { opacity: 0.6 } },
+          push: { particles_nb: 4 }
+        }
+      },
+      retina_detect: true
+    });
+  }
+
+  if (themeToggleBtn) {
+    themeToggleBtn.addEventListener('click', () => {
+      const isDark = rootEl.getAttribute('data-theme') === 'dark';
+      if (isDark) {
+        rootEl.removeAttribute('data-theme');
+        localStorage.setItem('theme', 'light');
+        themeToggleBtn.setAttribute('aria-pressed', 'false');
+        themeToggleBtn.innerHTML = '<i class="bi bi-moon"></i><span class="toggle-label">Dark mode</span>';
+      } else {
+        rootEl.setAttribute('data-theme', 'dark');
+        localStorage.setItem('theme', 'dark');
+        themeToggleBtn.setAttribute('aria-pressed', 'true');
+        themeToggleBtn.innerHTML = '<i class="bi bi-sun"></i><span class="toggle-label">Light mode</span>';
+      }
+      applyParticlesForTheme();
+    });
+  }
+
+  // Add Particles.js for background effect (guarded)
+  const particlesContainer = document.getElementById('particles-js');
+  if (particlesContainer && typeof particlesJS !== 'undefined') {
+    applyParticlesForTheme();
+  }
 
   // Smooth scroll with parallax effect
   document.addEventListener('scroll', () => {
